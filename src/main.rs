@@ -1,18 +1,15 @@
 
-
 // bring in the environment, which is used in the application's run method
 use std::env;
-
 
 use gio::{
     ApplicationExt,
     ApplicationExtManual,
      ApplicationFlags,
-     // add_action for application
      ActionMapExt
     };
+
 use gtk::{
-    // Application provides
     Application,
     ApplicationWindow,
     GtkApplicationExt,
@@ -22,7 +19,6 @@ use gtk::{
     GtkWindowExt,
     WidgetExt,
 };
-
 
 const MENUS_STR: &'static str = r#"
 <?xml version="1.0"?>
@@ -38,16 +34,6 @@ const MENUS_STR: &'static str = r#"
 </interface>
 "#;
 
-/// make moving clones into closures more convenient
-/// since we are cloning all the time when defining closures for signals / slots
-/// this macro makes it a bit simpler
-///
-/// # Usage
-/// ```rust
-/// widget.connect_some_event(clone!(foo,bar => move |_|{
-///     do my thing
-/// }));
-/// ```
 #[macro_export]
 macro_rules! clone {
     (@param _) => ( _ );
@@ -66,8 +52,6 @@ macro_rules! clone {
     );
 }
 
-/// components should not be reference counted coming out of glade, as they are
-/// already tracked
 #[macro_export]
 macro_rules! upgrade_weak {
     ($x:ident, $r:expr) => {{
@@ -100,14 +84,15 @@ pub fn add_actions(app: &Application, window: &ApplicationWindow) {
         dialog.run();
         dialog.destroy();
     }));
-
 }
 
 fn main() {
-    let application = Application::new("com.github.jlgerber.myexample", ApplicationFlags::empty())
-        .expect("Application initialization failed");
-    application.connect_startup(|application| {
+    let application = Application::new(
+        "com.github.problem.open_segfaults",
+        ApplicationFlags::empty()
+    ).expect("Application initialization failed");
 
+    application.connect_startup(|application| {
         let window = ApplicationWindow::new(application);
         window.set_title("Foobar");
 

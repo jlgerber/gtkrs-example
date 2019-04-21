@@ -234,7 +234,7 @@ version = "0.2.51"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
-name = "mainwin"
+name = "open_segfaults"
 version = "0.1.0"
 dependencies = [
  "gdk 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
