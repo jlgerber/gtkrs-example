@@ -6,7 +6,8 @@ use gio::{
     ApplicationExt,
     ApplicationExtManual,
      ApplicationFlags,
-     ActionMapExt
+     ActionMapExt,
+    FileExt,
     };
 
 use gtk::{
@@ -16,7 +17,9 @@ use gtk::{
     Builder,
     BuilderExt,
     DialogExt,
+    FileChooserExt,
     GtkWindowExt,
+    NativeDialogExt,
     WidgetExt,
 };
 
@@ -72,17 +75,23 @@ pub fn add_actions(app: &Application, window: &ApplicationWindow) {
 
     open.connect_activate(clone!(window => move |_, _| {
 
-        let dialog = gtk::FileChooserDialog::with_buttons(
+        let dialog = gtk::FileChooserNative::new(
             "Open File",
             Some(&window),
             gtk::FileChooserAction::Open,
-            &[ ("Ok",     gtk::ResponseType::Ok),
-            ("Cancel", gtk::ResponseType::Cancel),
-            ]
+            "Ok",
+            "Cancel"
         );
-        dialog.set_transient_for(Some(&window));
-        dialog.run();
-        dialog.destroy();
+        //dialog.set_transient_for(Some(&window));
+        let result = dialog.run();
+        if result == -3 {
+            if let Some(fname) = dialog.get_file() {
+                println!("the file is {:?}", fname.get_path().unwrap());
+            }
+        } else {
+            println!("Nope");
+        }
+        //dialog.destroy();
     }));
 }
 
