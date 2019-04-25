@@ -69,7 +69,7 @@ macro_rules! upgrade_weak {
 }
 
 /// add actions for application
-pub fn add_actions(app: &Application, window: &ApplicationWindow) {
+pub fn add_actions(app: &Application, window: &ApplicationWindow, sender: glib::Sender<std::path::PathBuf>) {
     let open = gio::SimpleAction::new("open", None);
     app.add_action(&open);
 
@@ -82,16 +82,15 @@ pub fn add_actions(app: &Application, window: &ApplicationWindow) {
             "Ok",
             "Cancel"
         );
-        //dialog.set_transient_for(Some(&window));
         let result = dialog.run();
         if result == -3 {
             if let Some(fname) = dialog.get_file() {
-                println!("the file is {:?}", fname.get_path().unwrap());
+                //println!("the file is {:?}", fname.get_path().unwrap());
+                let _ = sender.send(fname.get_path().unwrap());
             }
         } else {
             println!("Nope");
         }
-        //dialog.destroy();
     }));
 }
 
@@ -113,7 +112,26 @@ fn main() {
         let appmenu: gio::MenuModel = builder.get_object("appmenu").unwrap();
         application.set_app_menu(&appmenu);
 
-        add_actions(&application, &window);
+        let (sender, receiver) = glib::MainContext::channel(glib::PRIORITY_DEFAULT);
+        let (sender2, receiver2) = glib::MainContext::channel(glib::PRIORITY_DEFAULT);
+
+        add_actions(&application, &window, sender);
+        receiver.attach(None, move |msg| {
+            println!("intermediate {:?}", msg);
+            let _ = sender2.send(msg);
+
+            // Returning false here would close the receiver
+            // and have senders fail
+            glib::Continue(true)
+        });
+
+        receiver2.attach(None, move |msg| {
+            println!("received {:?}", msg);
+
+            // Returning false here would close the receiver
+            // and have senders fail
+            glib::Continue(true)
+        });
 
         window.show();
     });
